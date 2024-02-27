@@ -1,0 +1,42 @@
+import csv
+from flask import Flask, render_template, request, jsonify
+
+app = Flask(__name__)
+
+def load_crypto_data():
+    crypto_data = {}
+    with open(r"C:\Users\Evangelos\Desktop\Prices.csv") as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            company_name = row['Company Name']
+            company_symbol = row['Company Symbol']
+            crypto_price = row['Price']
+            market_cap = row["Market Cap"]
+            token_supply = row["Token Supply"]
+            crypto_data[company_name] = (crypto_price, company_symbol, market_cap, token_supply)
+    return crypto_data
+
+# Funktion mit der eine beliebige Kryptowährung gesucht werden kann
+@app.route("/get-stock/<symbol>")
+def get_stock(symbol):
+    crypto_data = load_crypto_data()
+    if symbol in crypto_data:
+        return jsonify({
+            "price": crypto_data[symbol][0],
+            "symbol": crypto_data[symbol][1],
+            "market_cap": crypto_data[symbol][2],
+            "token_supply": crypto_data[symbol][3]
+        })
+    else:
+        return jsonify({"error": "Stock not found"})
+
+# URL Code um eine Preisgrenze zu setzen.
+@app.route("/get-cryptolist")
+def get_cryptolist():
+    crypto_data = load_crypto_data()
+    price_above = float(request.args.get('price_above'))
+    filtered_stocks = {company: data for company, data in crypto_data.items() if float(data[0]) > price_above}
+    return jsonify(filtered_stocks)
+
+if __name__ == '__main__':
+    app.run(debug=True)
