@@ -30,13 +30,16 @@ def get_stock(symbol):
     else:
         return jsonify({"error": "Stock not found"})
 
-# URL Code um eine Preisgrenze zu setzen.
+# Code um eine Preis- und Marktkapitalisierungsgrenze zu setzen.
 @app.route("/get-cryptolist")
 def get_cryptolist():
     crypto_data = load_crypto_data()
     price_above = float(request.args.get('price_above'))
-    filtered_stocks = {company: data for company, data in crypto_data.items() if float(data[0]) > price_above}
-    return jsonify(filtered_stocks)
+    market_cap_above = float(request.args.get('market_cap_above', 0))
+    filtered_crypto = {company: data for company,
+            data in crypto_data.items()
+            if float(data[0]) > price_above and (market_cap_above == 0 or float(data[1]) > market_cap_above)}
+    return jsonify(filtered_crypto)
 
 if __name__ == '__main__':
     app.run(debug=True)
