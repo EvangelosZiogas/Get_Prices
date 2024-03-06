@@ -41,5 +41,20 @@ def get_cryptolist():
             if float(data[0]) > price_above and (market_cap_above == 0 or float(data[1]) > market_cap_above)}
     return jsonify(filtered_crypto)
 
+# Code um eine Rangliste vom höchsten bis zum niedrigsten Preis zu erstellen
+@app.route("/get-ranks")
+def price_rank():
+    crypto_data = load_crypto_data()
+    crypto_prices = [(name, float(data[0])) for name, data in crypto_data.items()]
+    sorted_prices = sorted(crypto_prices, key=lambda x: x[1], reverse=True)
+    ranked_crypto = {}
+    for rank, (name, price) in enumerate(sorted_prices, start=1):
+        ranked_crypto[name] = {
+            'Rank': rank,
+            'Symbol': crypto_data[name][1],
+            'Price': price,
+            }
+    return jsonify(ranked_crypto)
+
 if __name__ == '__main__':
     app.run(debug=True)
